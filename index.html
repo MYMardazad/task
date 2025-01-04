@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>لیست وظایف</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-section {
+      display: flex;
+      gap: 8px;
+    }
+
+    #task-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #add-btn {
+      padding: 10px 16px;
+      border: none;
+      background-color: #2196f3;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #add-btn:hover {
+      background-color: #1976d2;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .remove-btn {
+      background-color: #e53935;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .remove-btn:hover {
+      background-color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>لیست وظایف</h1>
+    
+    <div class="input-section">
+      <input type="text" id="task-input" placeholder="یک وظیفه وارد کنید..." />
+      <button id="add-btn">اضافه کردن</button>
+    </div>
+
+    <ul id="task-list"></ul>
+  </div>
+
+  <script>
+    // ابتدا لیست وظایف را از Local Storage می‌خوانیم (اگر وجود نداشت، آرایه خالی ایجاد می‌کنیم)
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    const taskInput = document.getElementById("task-input");
+    const addBtn = document.getElementById("add-btn");
+    const taskList = document.getElementById("task-list");
+
+    // تابع برای رندر (نمایش) مجدد لیست وظایف
+    function renderTasks() {
+      // ابتدا لیست را خالی می‌کنیم
+      taskList.innerHTML = "";
+
+      // سپس بر اساس آرایهٔ وظایف، آیتم‌های HTML را می‌سازیم
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        
+        // محتوای متن وظیفه
+        const span = document.createElement("span");
+        span.textContent = task; 
+
+        // دکمهٔ حذف
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "حذف";
+        removeBtn.classList.add("remove-btn");
+        removeBtn.addEventListener("click", () => {
+          removeTask(index);
+        });
+
+        li.appendChild(span);
+        li.appendChild(removeBtn);
+
+        taskList.appendChild(li);
+      });
+    }
+
+    // تابع برای اضافه کردن وظیفهٔ جدید
+    function addTask() {
+      const newTask = taskInput.value.trim();
+      if (newTask !== "") {
+        tasks.push(newTask);
+        saveTasks();      // ذخیره در Local Storage
+        renderTasks();    // نمایش مجدد
+        taskInput.value = ""; // خالی کردن ورودی
+      }
+    }
+
+    // تابع برای حذف یک وظیفه با استفاده از ایندکس آن
+    function removeTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    // تابع ذخیره‌سازی در Local Storage
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // رویداد کلیک دکمه اضافه کردن
+    addBtn.addEventListener("click", addTask);
+
+    // با فشار Enter در اینپوت هم وظیفه را اضافه کنیم
+    taskInput.addEventListener("keyup", (event) => {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
+
+    // در بدو ورود، یک بار لیست را رندر می‌کنیم
+    renderTasks();
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>لیست وظایف آکاردئونی - فقط با کلیک روی عنوان</title>
+  <title>لیست وظایف آکاردئونی با حفظ وضعیت باز و بسته</title>
   <style>
     body {
       font-family: sans-serif;
@@ -49,7 +49,7 @@
       background-color: #1976d2;
     }
 
-    /* نمایش کارت وظیفه */
+    /* کارت وظیفه */
     .task-item {
       background: #fafafa;
       border-radius: 4px;
@@ -59,12 +59,12 @@
       transition: background-color 0.3s;
       position: relative;
     }
-    /* رنگ قرمز برای وظیفه‌ای که overdue شده ولی 100٪ تکمیل نیست */
+    /* اگر وظیفه منقضی شود اما کامل نباشد */
     .overdue {
       background-color: #ffeded !important;
       border-color: #ffa4a4 !important;
     }
-    /* رنگ سبز برای وظیفه‌ای که 100٪ تکمیل شده */
+    /* اگر 100٪ تکمیل شود */
     .completed-100 {
       background-color: #e3ffe3 !important;
       border-color: #9cff9c !important;
@@ -85,8 +85,9 @@
       margin: 0;
       font-size: 16px;
       font-weight: 600;
-      cursor: pointer; /* نشانگر موس تغییر کند تا کاربر بداند کلیک‌پذیر است */
+      cursor: pointer; /* برای آکاردئون */
     }
+
     .task-date {
       font-size: 14px;
       color: #666;
@@ -97,7 +98,7 @@
       margin-top: 5px;
     }
 
-    /* دکمه‌های عمل (ویرایش و حذف) */
+    /* دکمه‌های عمل (ویرایش/حذف) */
     .task-actions {
       display: flex;
       gap: 8px;
@@ -123,7 +124,7 @@
       background-color: #d32f2f;
     }
 
-    /* بخش ویرایش وظیفه */
+    /* بخش ویرایش */
     .edit-section {
       display: flex;
       flex-wrap: wrap;
@@ -157,12 +158,12 @@
       background-color: #757575;
     }
 
-    /* زیر وظایف */
+    /* زیروظایف */
     .subtask-container {
       padding-left: 15px;
       border-left: 2px solid #ccc;
-      display: none; /* پیش‌فرض مخفی؛ آکاردئونی */
       margin-top: 5px;
+      /* نمایش یا عدم نمایش، براساس isOpen در JS تعیین می‌شود */
     }
     .subtask-list {
       list-style: none;
@@ -180,13 +181,13 @@
       border-radius: 4px;
       border: 1px solid #eee;
     }
-    .subtask-list li .subtask-left {
+    .subtask-left {
       display: flex;
       align-items: center;
       gap: 6px;
       flex: 1;
     }
-    .subtask-list li .subtask-left span {
+    .subtask-left span {
       flex: 1;
     }
     .btn-sub-delete {
@@ -228,9 +229,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>لیست وظایف آکاردئونی (فقط کلیک روی عنوان)</h1>
+    <h1>لیست وظایف با حفظ حالت آکاردئون</h1>
 
-    <!-- فرم افزودن وظیفهٔ جدید -->
+    <!-- فرم افزودن وظیفه جدید -->
     <div class="task-form">
       <input type="text" id="taskTitle" placeholder="عنوان وظیفه..." />
       <input type="date" id="taskDate" />
@@ -238,22 +239,21 @@
       <button id="addTaskBtn">اضافه کردن</button>
     </div>
 
-    <!-- لیست وظایف -->
+    <!-- محل نمایش لیست وظایف -->
     <div id="taskList"></div>
   </div>
 
   <script>
     /**
-     * ساختار داده برای هر وظیفه:
+     * ساختار داده برای هر تسک:
      * {
-     *   id: number,           // شناسه منحصربه‌فرد
-     *   title: string,        // عنوان وظیفه
-     *   date: string,         // تاریخ (yyyy-mm-dd)
-     *   time: string,         // زمان (hh:mm)
-     *   isCompleted: boolean, // وضعیت تکمیل وظیفه
-     *   subTasks: [           // آرایه زیروظایف
-     *     { title: string, isCompleted: boolean }
-     *   ]
+     *   id: number,
+     *   title: string,
+     *   date: string (yyyy-mm-dd),
+     *   time: string (hh:mm),
+     *   isCompleted: boolean,
+     *   subTasks: [ { title: string, isCompleted: boolean } ],
+     *   isOpen: boolean  // <-- وضعیت باز یا بسته بودن زیروظایف
      * }
      */
 
@@ -270,12 +270,12 @@
       localStorage.setItem("advancedTasks", JSON.stringify(tasks));
     }
 
-    // ساخت شناسهٔ منحصربه‌فرد
+    // ساخت شناسه یکتا
     function generateId() {
       return Date.now() + Math.floor(Math.random() * 1000);
     }
 
-    // بررسی منقضی‌شدن وظیفه (اگر date و time وارد شده باشد)
+    // بررسی منقضی شدن وظیفه
     function isTaskOverdue(task) {
       if (!task.date || !task.time) return false;
       const now = new Date();
@@ -283,8 +283,7 @@
       return now > deadline;
     }
 
-    // درصد تکمیل: اگر زیروظیفه نباشد، از isCompleted والد استفاده می‌شود
-    // اگر زیروظیفه وجود داشته باشد، درصد انجام بر اساس زیروظایف
+    // محاسبه درصد تکمیل (اگر زیروظیفه نداریم بر اساس isCompleted، وگرنه بر اساس زیروظایف)
     function getCompletionPercent(task) {
       if (task.subTasks.length === 0) {
         return task.isCompleted ? 100 : 0;
@@ -294,7 +293,7 @@
       return Math.round((done / total) * 100);
     }
 
-    // رندر کل لیست
+    // رندر لیست وظایف
     function renderTasks() {
       taskList.innerHTML = "";
 
@@ -302,27 +301,25 @@
         const taskItem = document.createElement("div");
         taskItem.classList.add("task-item");
 
-        // محاسبهٔ درصد تکمیل
         const percent = getCompletionPercent(task);
 
-        // اگر 100٪ تکمیل است → سبز
+        // اگر 100٪ تکمیل شده، سبز شود
         if (percent === 100) {
           taskItem.classList.add("completed-100");
         }
-        // اگر منقضی شده و کمتر از 100٪ → قرمز
+        // اگر منقضی شده و 100٪ نیست، قرمز
         else if (isTaskOverdue(task)) {
           taskItem.classList.add("overdue");
         }
 
-        // هدر وظیفه
+        // ساخت هدر وظیفه
         const taskHeader = document.createElement("div");
         taskHeader.classList.add("task-header");
 
-        // بخش چپ هدر (چک‌باکس + عنوان)
         const taskHeaderLeft = document.createElement("div");
         taskHeaderLeft.classList.add("task-header-left");
 
-        // چک‌باکس اصلی والد
+        // چک‌باکس والد
         const mainCheckbox = document.createElement("input");
         mainCheckbox.type = "checkbox";
         mainCheckbox.checked = task.isCompleted;
@@ -332,18 +329,13 @@
           renderTasks();
         });
 
+        // عنوان وظیفه (با کلیک روی آن آکاردئون را باز/بسته می‌کنیم)
         const titleElem = document.createElement("h3");
         titleElem.textContent = task.title;
-        // **اینجا رویداد کلیک برای باز/بسته شدن آکاردئون فقط روی عنوان**
-        titleElem.addEventListener("click", (event) => {
-          // جلوگیری از اثر روی چک‌باکس یا دکمه‌ها (اگر بخواهید)
-          event.stopPropagation();
-          // به سادگی نمایش زیروظایف را toggle می‌کنیم
-          if (subtaskContainer.style.display === "none") {
-            subtaskContainer.style.display = "block";
-          } else {
-            subtaskContainer.style.display = "none";
-          }
+        titleElem.addEventListener("click", () => {
+          task.isOpen = !task.isOpen; // تغییر وضعیت باز/بسته
+          saveTasks();
+          renderTasks();
         });
 
         taskHeaderLeft.appendChild(mainCheckbox);
@@ -373,7 +365,7 @@
         taskHeader.appendChild(taskHeaderLeft);
         taskHeader.appendChild(taskActions);
 
-        // تاریخ و زمان
+        // تاریخ/ساعت و درصد تکمیل
         const dateElem = document.createElement("div");
         dateElem.classList.add("task-date");
         const fullDateTime = (task.date ? task.date : "") + 
@@ -382,15 +374,15 @@
           ? "موعد: " + fullDateTime
           : "بدون زمان مشخص";
 
-        // درصد تکمیل
         const progressElem = document.createElement("div");
         progressElem.classList.add("progress");
         progressElem.textContent = `درصد تکمیل: ${percent}%`;
 
-        // کانتینر زیروظایف (آکاردئونی) - پیش‌فرض پنهان
+        // کانتینر زیروظایف (آکاردئون)
         const subtaskContainer = document.createElement("div");
         subtaskContainer.classList.add("subtask-container");
-        subtaskContainer.style.display = "none"; // پیش‌فرض بسته باشد
+        // نمایش بر اساس isOpen
+        subtaskContainer.style.display = task.isOpen ? "block" : "none";
 
         // فرم افزودن زیروظیفه
         const subtaskForm = document.createElement("div");
@@ -406,6 +398,7 @@
           const subVal = subtaskInput.value.trim();
           if (subVal) {
             task.subTasks.push({ title: subVal, isCompleted: false });
+            // در اینجا نباید isOpen را false کنیم. پس باز می‌ماند.
             subtaskInput.value = "";
             saveTasks();
             renderTasks();
@@ -430,24 +423,26 @@
           subCheckbox.checked = sub.isCompleted;
           subCheckbox.addEventListener("change", () => {
             sub.isCompleted = subCheckbox.checked;
-            // اگر همهٔ زیروظایف تیک خوردند، والد هم تیک بخورد
+            // اگر همهٔ زیروظایف تیک باشند، والد هم تیک بخورد
             const allDone = task.subTasks.every(st => st.isCompleted);
             task.isCompleted = allDone;
             saveTasks();
             renderTasks();
           });
 
-          const span = document.createElement("span");
-          span.textContent = sub.title;
+          const subSpan = document.createElement("span");
+          subSpan.textContent = sub.title;
 
           subtaskLeft.appendChild(subCheckbox);
-          subtaskLeft.appendChild(span);
+          subtaskLeft.appendChild(subSpan);
 
+          // دکمه حذف زیروظیفه
           const btnSubDelete = document.createElement("button");
           btnSubDelete.textContent = "حذف";
           btnSubDelete.classList.add("btn-sub-delete");
           btnSubDelete.addEventListener("click", () => {
             task.subTasks.splice(idx, 1);
+            // باز هم وضعیت isOpen دست‌نخورده باقی می‌ماند
             saveTasks();
             renderTasks();
           });
@@ -460,18 +455,18 @@
         subtaskContainer.appendChild(subtaskForm);
         subtaskContainer.appendChild(subtaskList);
 
-        // چیدمان نهایی داخل taskItem
+        // مونتاژ آیتم وظیفه
         taskItem.appendChild(taskHeader);
         taskItem.appendChild(dateElem);
         taskItem.appendChild(progressElem);
         taskItem.appendChild(subtaskContainer);
 
-        // درج در صفحه
+        // در پایان، کارت تسک را به صفحه اضافه می‌کنیم
         taskList.appendChild(taskItem);
       });
     }
 
-    // نمایش فرم ویرایش یک وظیفه
+    // نمایش فرم ویرایش
     function showEditSection(taskItem, task) {
       const editSection = document.createElement("div");
       editSection.classList.add("edit-section");
@@ -512,18 +507,19 @@
       editSection.appendChild(saveBtn);
       editSection.appendChild(cancelBtn);
 
+      // پاک کردن محتوای کارت و جایگزین فرم ویرایش
       taskItem.innerHTML = "";
       taskItem.appendChild(editSection);
     }
 
-    // حذف یک وظیفه
+    // حذف وظیفه والد
     function deleteTask(taskId) {
       tasks = tasks.filter(t => t.id !== taskId);
       saveTasks();
       renderTasks();
     }
 
-    // افزودن وظیفهٔ جدید
+    // رویداد دکمه "اضافه کردن وظیفه جدید"
     addTaskBtn.addEventListener("click", () => {
       const title = taskTitle.value.trim();
       const dateVal = taskDate.value;
@@ -536,18 +532,20 @@
           date: dateVal || "",
           time: timeVal || "",
           isCompleted: false,
-          subTasks: []
+          subTasks: [],
+          isOpen: false // پیش‌فرض بسته
         };
         tasks.push(newTask);
         saveTasks();
         renderTasks();
-        // پاک‌کردن ورودی‌ها
+
+        // ورودی‌ها را خالی می‌کنیم
         taskTitle.value = "";
         taskDate.value = "";
         taskTime.value = "";
       }
     });
-
+    setInterval(renderTasks,40000)
     // بارگذاری اولیه
     renderTasks();
   </script>

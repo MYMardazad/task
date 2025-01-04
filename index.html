@@ -1,170 +1,442 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>لیست وظایف</title>
+  <title>لیست وظایف با زیروظیفه و ویرایش</title>
   <style>
     body {
       font-family: sans-serif;
-      direction: rtl;
+      background-color: #f5f5f5;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
     }
-
     .container {
-      max-width: 400px;
-      margin: 50px auto;
-      background: #ffffff;
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
     h1 {
       text-align: center;
       margin-bottom: 20px;
     }
-
-    .input-section {
+    .task-form {
       display: flex;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-
-    #task-input {
+    .task-form input[type="text"],
+    .task-form input[type="date"],
+    .task-form input[type="time"] {
       flex: 1;
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-
-    #add-btn {
+    .task-form button {
       padding: 10px 16px;
       border: none;
       background-color: #2196f3;
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s;
     }
-
-    #add-btn:hover {
+    .task-form button:hover {
       background-color: #1976d2;
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 20px;
-    }
-
-    li {
-      background: #f9f9f9;
-      padding: 10px;
-      margin-bottom: 8px;
+    /* نمایش لیست وظایف */
+    .task-item {
+      background: #fafafa;
       border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+    }
+    .task-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 5px;
     }
-
-    .remove-btn {
-      background-color: #e53935;
-      color: #fff;
-      border: none;
+    .task-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .task-actions button {
       padding: 6px 10px;
+      border: none;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      color: #fff;
+      transition: 0.3s;
+    }
+    .btn-edit {
+      background-color: #ff9800;
+    }
+    .btn-edit:hover {
+      background-color: #e68a00;
+    }
+    .btn-delete {
+      background-color: #f44336;
+    }
+    .btn-delete:hover {
+      background-color: #d32f2f;
     }
 
-    .remove-btn:hover {
-      background-color: #c62828;
+    /* نمایش تاریخ وظیفه */
+    .task-date {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    /* بخش ویرایش وظیفه */
+    .edit-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .edit-section input[type="text"],
+    .edit-section input[type="date"],
+    .edit-section input[type="time"] {
+      flex: 1;
+      padding: 6px;
+    }
+    .edit-section button {
+      padding: 6px 12px;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-save {
+      background-color: #4caf50;
+    }
+    .btn-save:hover {
+      background-color: #43a047;
+    }
+    .btn-cancel {
+      background-color: #9e9e9e;
+    }
+    .btn-cancel:hover {
+      background-color: #757575;
+    }
+
+    /* زیر وظایف (SubTasks) */
+    .subtask-container {
+      margin-top: 10px;
+      padding-left: 15px;
+      border-left: 2px solid #ccc;
+    }
+    .subtask-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .subtask-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      background-color: #fff;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    .subtask-list li span {
+      flex: 1;
+      margin-right: 5px;
+    }
+    .subtask-list .btn-sub-delete {
+      background-color: #f44336;
+      border: none;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .subtask-list .btn-sub-delete:hover {
+      background-color: #d32f2f;
+    }
+    .subtask-form {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .subtask-form input {
+      flex: 1;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .subtask-form button {
+      padding: 6px 10px;
+      border: none;
+      background-color: #607d8b;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .subtask-form button:hover {
+      background-color: #455a64;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>لیست وظایف</h1>
-    
-    <div class="input-section">
-      <input type="text" id="task-input" placeholder="یک وظیفه وارد کنید..." />
-      <button id="add-btn">اضافه کردن</button>
+    <h1>لیست وظایف پیشرفته</h1>
+
+    <!-- فرم اضافه کردن وظیفه جدید -->
+    <div class="task-form">
+      <input type="text" id="taskTitle" placeholder="عنوان وظیفه..." />
+      <input type="date" id="taskDate" />
+      <input type="time" id="taskTime" />
+      <button id="addTaskBtn">اضافه کردن</button>
     </div>
 
-    <ul id="task-list"></ul>
+    <!-- محل نمایش لیست وظایف -->
+    <div id="taskList"></div>
   </div>
 
   <script>
-    // ابتدا لیست وظایف را از Local Storage می‌خوانیم (اگر وجود نداشت، آرایه خالی ایجاد می‌کنیم)
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    // آرایه‌ای از وظایف که شامل عنوان، تاریخ و زیروظایف است
+    // هر وظیفه یک ساختار شیء مانند زیر دارد:
+    // {
+    //   id: منحصربه‌فرد,
+    //   title: "string",
+    //   date: "YYYY-MM-DD",  // از طریق ورودی type="date" گرفته می‌شود
+    //   time: "HH:MM",      // از طریق ورودی type="time" گرفته می‌شود
+    //   subTasks: ["زیروظیفه ۱", "زیروظیفه ۲", ...]
+    // }
+    let tasks = JSON.parse(localStorage.getItem("advancedTasks")) || [];
 
-    const taskInput = document.getElementById("task-input");
-    const addBtn = document.getElementById("add-btn");
-    const taskList = document.getElementById("task-list");
+    const taskTitle = document.getElementById("taskTitle");
+    const taskDate = document.getElementById("taskDate");
+    const taskTime = document.getElementById("taskTime");
+    const addTaskBtn = document.getElementById("addTaskBtn");
+    const taskList = document.getElementById("taskList");
 
-    // تابع برای رندر (نمایش) مجدد لیست وظایف
+    // ذخیره در LocalStorage
+    function saveTasks() {
+      localStorage.setItem("advancedTasks", JSON.stringify(tasks));
+    }
+
+    // ساخت یک شناسه‌ی منحصربه‌فرد برای هر وظیفه (برای مدیریت راحت‌تر)
+    function generateId() {
+      return Date.now() + Math.floor(Math.random() * 1000);
+    }
+
+    // رندر لیست وظایف
     function renderTasks() {
-      // ابتدا لیست را خالی می‌کنیم
       taskList.innerHTML = "";
 
-      // سپس بر اساس آرایهٔ وظایف، آیتم‌های HTML را می‌سازیم
-      tasks.forEach((task, index) => {
-        const li = document.createElement("li");
-        
-        // محتوای متن وظیفه
-        const span = document.createElement("span");
-        span.textContent = task; 
+      tasks.forEach((task) => {
+        const taskItem = document.createElement("div");
+        taskItem.classList.add("task-item");
 
-        // دکمهٔ حذف
-        const removeBtn = document.createElement("button");
-        removeBtn.textContent = "حذف";
-        removeBtn.classList.add("remove-btn");
-        removeBtn.addEventListener("click", () => {
-          removeTask(index);
+        // ========= بخش نمایش اولیه وظیفه =========
+        const taskHeader = document.createElement("div");
+        taskHeader.classList.add("task-header");
+
+        const titleElem = document.createElement("h3");
+        titleElem.textContent = task.title;
+
+        // نمایش تاریخ و زمان در زیر عنوان
+        const dateElem = document.createElement("div");
+        dateElem.classList.add("task-date");
+        const fullDateTime = (task.date ? task.date : "") + 
+          (task.time ? " " + task.time : "");
+        if (fullDateTime.trim().length > 0) {
+          dateElem.textContent = "زمان: " + fullDateTime;
+        } else {
+          dateElem.textContent = "بدون زمان مشخص";
+        }
+
+        // دکمه‌های عمل (ویرایش / حذف)
+        const taskActions = document.createElement("div");
+        taskActions.classList.add("task-actions");
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "ویرایش";
+        editBtn.classList.add("btn-edit");
+        editBtn.addEventListener("click", () => {
+          showEditSection(taskItem, task);
         });
 
-        li.appendChild(span);
-        li.appendChild(removeBtn);
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "حذف";
+        deleteBtn.classList.add("btn-delete");
+        deleteBtn.addEventListener("click", () => {
+          deleteTask(task.id);
+        });
 
-        taskList.appendChild(li);
+        taskActions.appendChild(editBtn);
+        taskActions.appendChild(deleteBtn);
+
+        taskHeader.appendChild(titleElem);
+        taskHeader.appendChild(taskActions);
+
+        // ========= اضافه کردن بخش نمایش به item =========
+        taskItem.appendChild(taskHeader);
+        taskItem.appendChild(dateElem);
+
+        // ========= نمایش و مدیریت زیروظیفه‌ها =========
+        const subtaskContainer = document.createElement("div");
+        subtaskContainer.classList.add("subtask-container");
+
+        // فرم افزودن زیروظیفه
+        const subtaskForm = document.createElement("div");
+        subtaskForm.classList.add("subtask-form");
+
+        const subtaskInput = document.createElement("input");
+        subtaskInput.type = "text";
+        subtaskInput.placeholder = "افزودن زیروظیفه...";
+
+        const subtaskAddBtn = document.createElement("button");
+        subtaskAddBtn.textContent = "اضافه کردن زیروظیفه";
+        subtaskAddBtn.addEventListener("click", () => {
+          const subVal = subtaskInput.value.trim();
+          if (subVal) {
+            task.subTasks.push(subVal);
+            subtaskInput.value = "";
+            saveTasks();
+            renderTasks();
+          }
+        });
+
+        subtaskForm.appendChild(subtaskInput);
+        subtaskForm.appendChild(subtaskAddBtn);
+
+        // لیست نمایش زیروظیفه
+        const subtaskList = document.createElement("ul");
+        subtaskList.classList.add("subtask-list");
+
+        task.subTasks.forEach((sub, idx) => {
+          const li = document.createElement("li");
+
+          const span = document.createElement("span");
+          span.textContent = sub;
+
+          const btnSubDelete = document.createElement("button");
+          btnSubDelete.textContent = "حذف";
+          btnSubDelete.classList.add("btn-sub-delete");
+          btnSubDelete.addEventListener("click", () => {
+            task.subTasks.splice(idx, 1);
+            saveTasks();
+            renderTasks();
+          });
+
+          li.appendChild(span);
+          li.appendChild(btnSubDelete);
+          subtaskList.appendChild(li);
+        });
+
+        subtaskContainer.appendChild(subtaskForm);
+        subtaskContainer.appendChild(subtaskList);
+
+        taskItem.appendChild(subtaskContainer);
+
+        // افزودن به صفحه
+        taskList.appendChild(taskItem);
       });
     }
 
-    // تابع برای اضافه کردن وظیفهٔ جدید
-    function addTask() {
-      const newTask = taskInput.value.trim();
-      if (newTask !== "") {
-        tasks.push(newTask);
-        saveTasks();      // ذخیره در Local Storage
-        renderTasks();    // نمایش مجدد
-        taskInput.value = ""; // خالی کردن ورودی
-      }
+    // نمایش بخش ویرایش
+    function showEditSection(taskItem, task) {
+      // ساخت بخش ویرایش
+      const editSection = document.createElement("div");
+      editSection.classList.add("edit-section");
+
+      const editTitleInput = document.createElement("input");
+      editTitleInput.type = "text";
+      editTitleInput.value = task.title;
+
+      const editDateInput = document.createElement("input");
+      editDateInput.type = "date";
+      editDateInput.value = task.date || "";
+
+      const editTimeInput = document.createElement("input");
+      editTimeInput.type = "time";
+      editTimeInput.value = task.time || "";
+
+      // دکمه ذخیره
+      const saveBtn = document.createElement("button");
+      saveBtn.textContent = "ذخیره";
+      saveBtn.classList.add("btn-save");
+      saveBtn.addEventListener("click", () => {
+        task.title = editTitleInput.value.trim() || "بدون عنوان";
+        task.date = editDateInput.value;
+        task.time = editTimeInput.value;
+        saveTasks();
+        renderTasks();
+      });
+
+      // دکمه انصراف
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "انصراف";
+      cancelBtn.classList.add("btn-cancel");
+      cancelBtn.addEventListener("click", () => {
+        renderTasks();
+      });
+
+      editSection.appendChild(editTitleInput);
+      editSection.appendChild(editDateInput);
+      editSection.appendChild(editTimeInput);
+      editSection.appendChild(saveBtn);
+      editSection.appendChild(cancelBtn);
+
+      // پاک کردن محتویات داخل taskItem و نمایش فرم ویرایش
+      taskItem.innerHTML = "";
+      taskItem.appendChild(editSection);
     }
 
-    // تابع برای حذف یک وظیفه با استفاده از ایندکس آن
-    function removeTask(index) {
-      tasks.splice(index, 1);
+    // تابع حذف وظیفه
+    function deleteTask(taskId) {
+      tasks = tasks.filter(t => t.id !== taskId);
       saveTasks();
       renderTasks();
     }
 
-    // تابع ذخیره‌سازی در Local Storage
-    function saveTasks() {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
+    // افزودن وظیفه جدید
+    addTaskBtn.addEventListener("click", () => {
+      const title = taskTitle.value.trim();
+      const dateVal = taskDate.value;
+      const timeVal = taskTime.value;
 
-    // رویداد کلیک دکمه اضافه کردن
-    addBtn.addEventListener("click", addTask);
+      if (title !== "") {
+        const newTask = {
+          id: generateId(),
+          title,
+          date: dateVal,
+          time: timeVal,
+          subTasks: []
+        };
+        tasks.push(newTask);
+        saveTasks();
+        renderTasks();
 
-    // با فشار Enter در اینپوت هم وظیفه را اضافه کنیم
-    taskInput.addEventListener("keyup", (event) => {
-      if (event.key === "Enter") {
-        addTask();
+        // ورودی‌ها را خالی می‌کنیم
+        taskTitle.value = "";
+        taskDate.value = "";
+        taskTime.value = "";
       }
     });
 
-    // در بدو ورود، یک بار لیست را رندر می‌کنیم
+    // بارگذاری اولیه
     renderTasks();
   </script>
 </body>
